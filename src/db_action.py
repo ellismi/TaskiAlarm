@@ -13,6 +13,15 @@ class DB():
         return self.cnx, self.cursor
 
     @classmethod
+    def create_connection_without_db(self):
+        # Открытие подключения
+        self.cnx = mysql.connector.connect(user=setting.user, password=setting.password,
+                              host=setting.host)
+        self.cursor = self.cnx.cursor()
+        print('has connection without db')
+        return self.cnx, self.cursor
+
+    @classmethod
     def sql_action(self, query, data =''):
         cnx, cursor = self.create_connection()    
         answer = ''    

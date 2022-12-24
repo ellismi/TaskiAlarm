@@ -7,7 +7,7 @@ class DataBaseStart():
     @classmethod
     def start(self):
         # Получение курсора
-        cnx, cursor = db_action.DB.create_connection()
+        cnx, cursor = db_action.DB.create_connection_without_db()
 
         def create_database():
             try:
