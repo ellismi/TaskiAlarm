@@ -53,7 +53,7 @@ TABLES['tasks'] = (
     "  `list_id` INTEGER NOT NULL,"
     "  `parent_id` INTEGER,"
     "  `tags` VARCHAR(255),"
-    "  `status_id` INTEGER NOT NULL DEFAULT 0,"
+    "  `status_id` INTEGER NOT NULL DEFAULT 1,"
     "  PRIMARY KEY (`id`), "
     "  CONSTRAINT `list_task_fk_1` FOREIGN KEY (`list_id`) "
     "     REFERENCES `lists` (`id`),"
@@ -72,10 +72,14 @@ TABLES['alarms'] = (
     "  `month_interval` INTEGER,"
     "  `year_interval` INTEGER,"
     "  `task_id` INTEGER NOT NULL,"
-    "  `status_id` INTEGER NOT NULL DEFAULT 0,"
+    "  `status_id` INTEGER NOT NULL DEFAULT 1,"
     "  PRIMARY KEY (`id`), "
     "  CONSTRAINT `task_alarm_fk_1` FOREIGN KEY (`task_id`) "
     "     REFERENCES `tasks` (`id`),"
     "  CONSTRAINT `status_alarm_fk_2` FOREIGN KEY (`status_id`) "
     "     REFERENCES `statuses` (`id`)"
     ")")
+
+DATAS = (
+    "INSERT INTO statuses (status_name) VALUES ('open'), ('closed'), ('overdue');"
+)

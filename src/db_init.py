@@ -43,6 +43,11 @@ class DataBaseStart():
             else:
                 print("OK")
         
+        try:
+            cursor.execute(db_structure.DATAS)
+            cnx.commit()
+        except mysql.connector.Error as err:
+            print(err)
         # Закрываем курсор здесь же
         cursor.close()
         cnx.close()
