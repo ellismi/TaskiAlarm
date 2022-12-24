@@ -5,6 +5,7 @@ services:
     build: src/
     container_name: bot
     environment:
+      BOT_KEY: ${BOT_KEY}
       DB_HOST: database
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
@@ -13,8 +14,11 @@ services:
     links:
       - "db:database"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: always
+    volumes:
+      - ./src:/app
 
   db:
     image: mariadb:10.10
@@ -24,6 +28,13 @@ services:
     restart: always
     networks:
       - internal
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "--host=localhost", "--password=${DB_PASSWORD}"]
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ./dbdata:/var/lib/mysql
+    # mysqladmin ping --host=localhost --password=test
 
   phpmyadmin:
     image: phpmyadmin

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 python start_db.py
 
