@@ -37,20 +37,25 @@ def get_text_messages(message):
         bot.register_next_step_handler(mesg, add_project)
     elif message.text == '+ задачу':
         data = db.SQLCommand.show_project(message.chat.id)
-        print(data)
+        # print(data)
         btns = []
         no_project_list = db.SQLCommand.use_def_list(message.chat.id)
         for i in data:
             btns.append([i[0], "in_project|" + str(i[1])])
-        print(btns)
+        btns.append(['Пропустить', 'in_list|' + str(no_project_list)])
         keyboard = change_keyboard_inline(btns)
-        keyboard.add(types.InlineKeyboardButton(text='Пропустить', callback_data='in_list|' + str(no_project_list)))
         mesg = bot.send_message(message.chat.id,'Выберите проект', reply_markup=keyboard)
-        # bot.register_next_step_handler(mesg, choose_project)
     elif message.text == 'Входящие':
-        default_list = db.SQLCommand.use_def_list(message.chat.id)
-        
-        bot.send_message(message.from_user.id, message.text, reply_markup=default_keyboard)
+        data = db.SQLCommand.show_task_list(message.from_user.id)
+        if data is None:
+            bot.send_message(message.from_user.id, 'Нет задач', reply_markup=default_keyboard)
+        else:
+            btns = []
+            for i in data:
+                btns.append([i[0], "in_project|" + str(i[1])])
+            keyboard = change_keyboard_inline(btns)
+            mesg = bot.send_message(message.chat.id, 'Задачи', reply_markup=keyboard)
+            bot.send_message(message.from_user.id, message.text, reply_markup=default_keyboard)
     elif message.text == 'Сегодня':
         bot.send_message(message.from_user.id, message.text, reply_markup=default_keyboard)
     elif message.text == 'Скоро':
@@ -91,6 +96,7 @@ def ans(call):
         mesg = bot.send_message(call.message.chat.id, 'Выберите лист', reply_markup=keyboard)
     elif data[0] == 'in_list':
         mesg = bot.send_message(call.message.chat.id, 'Напишите название задачи', reply_markup=types.ReplyKeyboardRemove())
+        # print(data)
         bot.register_next_step_handler(mesg, add_task, data[1])
     elif data[0] == 'back':
         bot.send_message(call.message.chat.id, 'Выберите действие', reply_markup=default_keyboard)
