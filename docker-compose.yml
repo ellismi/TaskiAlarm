@@ -1,0 +1,49 @@
+version: "3"
+
+services:
+  bot:
+    build: src/
+    container_name: bot
+    environment:
+      DB_HOST: database
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - internal
+    links:
+      - "db:database"
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    image: mariadb:10.10
+    container_name: db
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
+    restart: always
+    networks:
+      - internal
+
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      PMA_ARBITRARY: 1
+      PMA_HOST: database
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USER}
+      PMA_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - internal
+    links:
+      - "db:database"
+    depends_on:
+      - db
+
+networks:
+  internal:
+    driver: bridge
