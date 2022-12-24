@@ -40,12 +40,6 @@ TABLES['lists'] = (
     "     REFERENCES `projects` (`id`)"
     ")")
 
-TABLES['statuses'] = (
-    "CREATE TABLE `statuses` ("
-    "  `id` INTEGER NOT NULL AUTO_INCREMENT,"
-    "  `status_name` VARCHAR(255) NOT NULL,"
-    " PRIMARY KEY (`id`)"
-    ")")
 
 TABLES['tasks'] = (
     "CREATE TABLE `tasks` ("
@@ -55,11 +49,10 @@ TABLES['tasks'] = (
     "  `parent_id` INTEGER,"
     "  `tags` VARCHAR(255),"
     "  `status_id` INTEGER NOT NULL DEFAULT 1,"
+    "  `scheduled` DATE NULL DEFAULT (CURRENT_DATE), "
     "  PRIMARY KEY (`id`), "
     "  CONSTRAINT `list_task_fk_1` FOREIGN KEY (`list_id`) "
-    "     REFERENCES `lists` (`id`),"
-    "  CONSTRAINT `status_task_fk_2` FOREIGN KEY (`status_id`) "
-    "     REFERENCES `statuses` (`id`)"
+    "     REFERENCES `lists` (`id`)"
     ")")
 
 TABLES['alarms'] = (
@@ -76,9 +69,7 @@ TABLES['alarms'] = (
     "  `status_id` INTEGER NOT NULL DEFAULT 1,"
     "  PRIMARY KEY (`id`), "
     "  CONSTRAINT `task_alarm_fk_1` FOREIGN KEY (`task_id`) "
-    "     REFERENCES `tasks` (`id`),"
-    "  CONSTRAINT `status_alarm_fk_2` FOREIGN KEY (`status_id`) "
-    "     REFERENCES `statuses` (`id`)"
+    "     REFERENCES `tasks` (`id`)"
     ")")
 
 DATAS = (

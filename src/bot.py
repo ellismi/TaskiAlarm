@@ -54,8 +54,7 @@ def get_text_messages(message):
             for i in data:
                 btns.append([i[0], "in_project|" + str(i[1])])
             keyboard = change_keyboard_inline(btns)
-            mesg = bot.send_message(message.chat.id, 'Задачи', reply_markup=keyboard)
-            bot.send_message(message.from_user.id, message.text, reply_markup=default_keyboard)
+            bot.send_message(message.from_user.id, 'Задачи', reply_markup=default_keyboard)
     elif message.text == 'Сегодня':
         bot.send_message(message.from_user.id, message.text, reply_markup=default_keyboard)
     elif message.text == 'Скоро':
