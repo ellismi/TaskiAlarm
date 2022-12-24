@@ -24,7 +24,6 @@ default_keyboard.row('+ задачу', '+ проект')
 default_keyboard.row('Входящие', 'Сегодня', 'Скоро') 
 
 
-
 @bot.message_handler(commands=['start'])
 def get_text_messages(message):
     db.SQLCommand.add_user(message.chat.id)
@@ -40,13 +39,17 @@ def get_text_messages(message):
         data = db.SQLCommand.show_project(message.chat.id)
         print(data)
         btns = []
+        no_project_list = db.SQLCommand.use_def_list(message.chat.id)
         for i in data:
             btns.append([i[0], "in_project|" + str(i[1])])
+        print(btns)
         keyboard = change_keyboard_inline(btns)
-        keyboard.add(['Пропустить', 'no_project'])
+        keyboard.add(types.InlineKeyboardButton(text='Пропустить', callback_data='in_list|' + str(no_project_list)))
         mesg = bot.send_message(message.chat.id,'Выберите проект', reply_markup=keyboard)
         # bot.register_next_step_handler(mesg, choose_project)
     elif message.text == 'Входящие':
+        default_list = db.SQLCommand.use_def_list(message.chat.id)
+        
         bot.send_message(message.from_user.id, message.text, reply_markup=default_keyboard)
     elif message.text == 'Сегодня':
         bot.send_message(message.from_user.id, message.text, reply_markup=default_keyboard)
@@ -56,7 +59,7 @@ def get_text_messages(message):
         bot.send_message(message.from_user.id, message.from_user.id,reply_markup=default_keyboard)
 
 
-
+# Callbacks
 def add_project(message):
     project_id = db.SQLCommand.add_project(message.chat.id, message.text)
     callback = 'add_list|' + str(project_id)
@@ -64,7 +67,6 @@ def add_project(message):
     bot.send_message(message.chat.id, 'Проект создан', reply_markup=keyboard)
 
 def add_list(message, project_id):
-    # bot.send_message(message.chat.id, project_id)
     list_id = db.SQLCommand.add_list(project_id, message.text)
     bot.send_message(message.chat.id, 'Лист создан')
 
@@ -73,7 +75,7 @@ def add_task(message, list_id):
     bot.send_message(message.chat.id, 'Задание создано', reply_markup=default_keyboard)
 
 
-
+# Handlers
 @bot.callback_query_handler(func=lambda call: True)
 def ans(call):
     data = str(call.data).split('|')
@@ -85,13 +87,13 @@ def ans(call):
         btns = []
         for i in query:
             btns.append([i[0], "in_list|" + str(i[1])])
-        print(btns)
         keyboard = change_keyboard_inline(btns)
         mesg = bot.send_message(call.message.chat.id, 'Выберите лист', reply_markup=keyboard)
-        # bot.register_next_step_handler(mesg, add_list, data[1])
     elif data[0] == 'in_list':
         mesg = bot.send_message(call.message.chat.id, 'Напишите название задачи', reply_markup=types.ReplyKeyboardRemove())
         bot.register_next_step_handler(mesg, add_task, data[1])
+    elif data[0] == 'back':
+        bot.send_message(call.message.chat.id, 'Выберите действие', reply_markup=default_keyboard)
 
 
 # Дебаг

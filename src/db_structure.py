@@ -1,5 +1,6 @@
+import setting
 # Задание БД и таблиц
-DB_NAME = 'mytasks'
+DB_NAME = setting.db
 
 TABLES = {}
 TABLES['users'] = (
@@ -45,7 +46,7 @@ TABLES['statuses'] = (
     "  `status_name` VARCHAR(255) NOT NULL,"
     " PRIMARY KEY (`id`)"
     ")")
-    
+
 TABLES['tasks'] = (
     "CREATE TABLE `tasks` ("
     "  `id` INTEGER NOT NULL AUTO_INCREMENT,"
@@ -81,5 +82,5 @@ TABLES['alarms'] = (
     ")")
 
 DATAS = (
-    "INSERT INTO statuses (status_name) VALUES ('open'), ('closed'), ('overdue');"
+    "CREATE TRIGGER projects_after_insert AFTER INSERT ON projects FOR EACH ROW BEGIN INSERT INTO users_projects (user_id, project_id) VALUES (NEW.user_id, NEW.id); INSERT INTO lists (project_id) VALUES (NEW.id); END;    CREATE TRIGGER users_after_insert AFTER INSERT ON users FOR EACH ROW BEGIN INSERT INTO projects (user_id, project_name) VALUES (NEW.id, DEFAULT); END  "
 )
