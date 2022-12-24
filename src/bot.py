@@ -1,60 +1,97 @@
-import telebot;
+import telebot
 import setting
 from telebot import types
 import db
 
-bot = telebot.TeleBot(setting.bot_token);
-
-start_commands = ['Задачи', 'Проекты']
-
-task_command = ['Показать', 'Создать новую']
-project_command = ['Показать', 'Создать новый', 'Дать доступ']
+bot = telebot.TeleBot(setting.bot_token)
 
 # Генерация клавиатуры
-def change_keyboard(command = []):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+def change_keyboard_inline(answer = []):
+    keyboard = types.InlineKeyboardMarkup()
+    for i in answer:
+        keyboard.add(types.InlineKeyboardButton(text=i[0], callback_data=i[1]))
+    return keyboard
+
+def change_keyboard_keys(command = []):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=3, one_time_keyboard=True)
     for i in command:
-        key = types.KeyboardButton(i)
-        markup.add(key)
+        markup.add(types.KeyboardButton(i))
     return markup
+
+# Клавиатура по умолчанию
+default_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
+default_keyboard.row('+ задачу', '+ проект')
+default_keyboard.row('Входящие', 'Сегодня', 'Скоро') 
+
+
+
+@bot.message_handler(commands=['start'])
+def get_text_messages(message):
+    db.SQLCommand.add_user(message.chat.id)
+    bot.send_message(message.from_user.id, 'Привет', reply_markup=default_keyboard)
 
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
-    
-    markup = change_keyboard(start_commands)
-    bot.send_message(message.chat.id,'Выберите что вам надо',reply_markup=types.ReplyKeyboardRemove())
-    bot.send_message(message.chat.id,'Выберите что вам надо',reply_markup=markup)
-    
-    if message.text in start_commands:
-        if message.text == 'Задачи':
-            markup = change_keyboard(task_command)
-            bot.send_message(message.from_user.id, message.chat.id,reply_markup=markup)
-            db.SQLCommand.show_all_tasks(message.chat.id)
-        elif message.text == 'Проекты':
-            markup = change_keyboard(project_command)
-            bot.send_message(message.from_user.id, "ты выбрал проекты",reply_markup=markup)
+    if message.text == '+ проект':
+        mesg = bot.send_message(message.chat.id,'Напишите название проекта', reply_markup=types.ReplyKeyboardRemove())
+        bot.register_next_step_handler(mesg, add_project)
+    elif message.text == '+ задачу':
+        data = db.SQLCommand.show_project(message.chat.id)
+        print(data)
+        btns = []
+        for i in data:
+            btns.append([i[0], "in_project|" + str(i[1])])
+        keyboard = change_keyboard_inline(btns)
+        keyboard.add(['Пропустить', 'no_project'])
+        mesg = bot.send_message(message.chat.id,'Выберите проект', reply_markup=keyboard)
+        # bot.register_next_step_handler(mesg, choose_project)
+    elif message.text == 'Входящие':
+        bot.send_message(message.from_user.id, message.text, reply_markup=default_keyboard)
+    elif message.text == 'Сегодня':
+        bot.send_message(message.from_user.id, message.text, reply_markup=default_keyboard)
+    elif message.text == 'Скоро':
+        bot.send_message(message.from_user.id, message.text, reply_markup=default_keyboard)
     else:
-        print('in else')
+        bot.send_message(message.from_user.id, message.from_user.id,reply_markup=default_keyboard)
 
-    if message.text == "/start":
-        db.SQLCommand.add_user(message.chat.id)
-        bot.send_message(message.from_user.id, "start")
 
-    # if message.text == "Привет":
-        # item1 = types.KeyboardButton("Кнопка 1")
-        # markup.add(item1)
-        # bot.send_message(message.from_user.id, "Привет, чем я могу тебе помочь?")
-    # elif message.text == "/help":
-        # item1 = types.KeyboardButton("Кнопка 2")
-        # markup.add(item1)
-        # bot.send_message(message.from_user.id, "Напиши привет")
-    # else:
-        # item1 = types.KeyboardButton("Кнопка 3")
-        # markup.add(item1)
-        # bot.send_message(message.from_user.id, "Я тебя не понимаю. Напиши /help.")
-    # bot.send_message(message.chat.id,'Выберите что вам надо',reply_markup=markup)
 
+def add_project(message):
+    project_id = db.SQLCommand.add_project(message.chat.id, message.text)
+    callback = 'add_list|' + str(project_id)
+    keyboard = change_keyboard_inline([['Вернуться', 'back'], ['Добавить лист', callback]])
+    bot.send_message(message.chat.id, 'Проект создан', reply_markup=keyboard)
+
+def add_list(message, project_id):
+    # bot.send_message(message.chat.id, project_id)
+    list_id = db.SQLCommand.add_list(project_id, message.text)
+    bot.send_message(message.chat.id, 'Лист создан')
+
+def add_task(message, list_id):
+    list_id = db.SQLCommand.add_task(message.text, list_id)
+    bot.send_message(message.chat.id, 'Задание создано', reply_markup=default_keyboard)
+
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def ans(call):
+    data = str(call.data).split('|')
+    if data[0] == 'add_list':
+        mesg = bot.send_message(call.message.chat.id, 'Напишите название листа', reply_markup=types.ReplyKeyboardRemove())
+        bot.register_next_step_handler(mesg, add_list, data[1])
+    elif data[0] == 'in_project':
+        query = db.SQLCommand.show_lists(data[1])
+        btns = []
+        for i in query:
+            btns.append([i[0], "in_list|" + str(i[1])])
+        print(btns)
+        keyboard = change_keyboard_inline(btns)
+        mesg = bot.send_message(call.message.chat.id, 'Выберите лист', reply_markup=keyboard)
+        # bot.register_next_step_handler(mesg, add_list, data[1])
+    elif data[0] == 'in_list':
+        mesg = bot.send_message(call.message.chat.id, 'Напишите название задачи', reply_markup=types.ReplyKeyboardRemove())
+        bot.register_next_step_handler(mesg, add_task, data[1])
 
 
 # Дебаг

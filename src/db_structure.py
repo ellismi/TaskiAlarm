@@ -1,5 +1,5 @@
 # Задание БД и таблиц
-DB_NAME = 'alarms'
+DB_NAME = 'mytasks'
 
 TABLES = {}
 TABLES['users'] = (
@@ -13,7 +13,7 @@ TABLES['projects'] = (
     "CREATE TABLE `projects` ("
     "  `id` INTEGER NOT NULL AUTO_INCREMENT,"
     "  `user_id` INTEGER NOT NULL,"
-    "  `project_name` VARCHAR(255) DEFAULT '.default',"
+    "  `project_name` VARCHAR(255) DEFAULT 'Входящие',"
     "  PRIMARY KEY (`id`), "
     "  CONSTRAINT `user_project_fk_1` FOREIGN KEY (`user_id`) "
     "     REFERENCES `users` (`id`)"
@@ -39,6 +39,13 @@ TABLES['lists'] = (
     "     REFERENCES `projects` (`id`)"
     ")")
 
+TABLES['statuses'] = (
+    "CREATE TABLE `statuses` ("
+    "  `id` INTEGER NOT NULL AUTO_INCREMENT,"
+    "  `status_name` VARCHAR(255) NOT NULL,"
+    " PRIMARY KEY (`id`)"
+    ")")
+    
 TABLES['tasks'] = (
     "CREATE TABLE `tasks` ("
     "  `id` INTEGER NOT NULL AUTO_INCREMENT,"
@@ -46,12 +53,13 @@ TABLES['tasks'] = (
     "  `list_id` INTEGER NOT NULL,"
     "  `parent_id` INTEGER,"
     "  `tags` VARCHAR(255),"
-    "  `status` INTEGER NOT NULL,"
+    "  `status_id` INTEGER NOT NULL DEFAULT 0,"
     "  PRIMARY KEY (`id`), "
     "  CONSTRAINT `list_task_fk_1` FOREIGN KEY (`list_id`) "
-    "     REFERENCES `lists` (`id`)"
+    "     REFERENCES `lists` (`id`),"
+    "  CONSTRAINT `status_task_fk_2` FOREIGN KEY (`status_id`) "
+    "     REFERENCES `statuses` (`id`)"
     ")")
-
 
 TABLES['alarms'] = (
     "CREATE TABLE `alarms` ("
@@ -64,29 +72,10 @@ TABLES['alarms'] = (
     "  `month_interval` INTEGER,"
     "  `year_interval` INTEGER,"
     "  `task_id` INTEGER NOT NULL,"
+    "  `status_id` INTEGER NOT NULL DEFAULT 0,"
     "  PRIMARY KEY (`id`), "
     "  CONSTRAINT `task_alarm_fk_1` FOREIGN KEY (`task_id`) "
-    "     REFERENCES `tasks` (`id`)"
-    ")")
-
-TABLES['complete_tasks'] = (
-    "CREATE TABLE `complete_tasks` ("
-    "  `id` INTEGER NOT NULL AUTO_INCREMENT,"
-    "  `task_id` INTEGER NOT NULL,"
-    "  `lead_time` DATETIME NOT NULL,"
-    "  `status` INTEGER,"
-    "  PRIMARY KEY (`id`), "
-    "  CONSTRAINT `complete_task_fk_1` FOREIGN KEY (`task_id`) "
-    "     REFERENCES `tasks` (`id`)"
-    ")")
-
-TABLES['complete_alarms'] = (
-    "CREATE TABLE `complete_alarms` ("
-    "  `id` INTEGER NOT NULL AUTO_INCREMENT,"
-    "  `alarm_id` INTEGER NOT NULL,"
-    "  `notice_time` DATETIME NOT NULL,"
-    "  `status` INTEGER,"
-    "  PRIMARY KEY (`id`), "
-    "  CONSTRAINT `complete_alarm_fk_1` FOREIGN KEY (`alarm_id`) "
-    "     REFERENCES `alarms` (`id`)"
+    "     REFERENCES `tasks` (`id`),"
+    "  CONSTRAINT `status_alarm_fk_2` FOREIGN KEY (`status_id`) "
+    "     REFERENCES `statuses` (`id`)"
     ")")

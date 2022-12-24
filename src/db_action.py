@@ -14,7 +14,8 @@ class DB():
 
     @classmethod
     def sql_action(self, query, data =''):
-        cnx, cursor = self.create_connection()        
+        cnx, cursor = self.create_connection()    
+        answer = ''    
         # Если есть данные для запроса подаем их 
         try:
             if (data):
@@ -24,9 +25,10 @@ class DB():
             cnx.commit()
         except mysql.connector.Error as err:
             print("{}".format(err))
-        
+        answer = cursor.lastrowid
         cursor.close()
         cnx.close()
+        return answer
 
     @classmethod
     def sql_select(self, query, data =''):

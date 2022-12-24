@@ -14,16 +14,14 @@ class SQLCommand():
             action.DB.sql_action(query, sqldata)
     
     @classmethod
-    def add_task(self, task_name, list_id = 0):
-        list_name = ''
-        query = ''
-        if (list_id == 0):
-            list_name = '.default'
-            query = 'select list_id from lists'
-            action.DB.sql_select()
-        
-        
-        query = 'INSERT INTO tasks (telegram_id) VALUES (%(telegram_id)s)'
+    def add_task(self, task_name, list_id):
+        query = ("INSERT INTO tasks (task_name, list_id) "
+        "VALUES (%(task_name)s, %(list_id)s);")
+        sqldata = {
+            'task_name': task_name,
+            'list_id': list_id
+        }
+        return action.DB.sql_action(query, sqldata)
 
     @classmethod 
     def show_all_tasks(self, telegram_id):
@@ -38,6 +36,54 @@ class SQLCommand():
         }
         data = action.DB.sql_select(query, sqldata)
         print(data)
+        return data 
+    @classmethod
+    def add_project(self, telegram_id, project_name):
+        query = ("INSERT INTO projects (user_id, project_name) "
+                "VALUES ((SELECT id FROM users WHERE telegram_id = %(telegram_id)s), %(project_name)s);")
+        sqldata = {
+            'telegram_id': telegram_id,
+            'project_name': project_name
+        }
+        return action.DB.sql_action(query, sqldata)
+        # print(data)
+
+    @classmethod
+    def add_list(self, project_id, list_name):
+        query = ("INSERT INTO lists (project_id, list_name) "
+                "VALUES (%(project_id)s, %(list_name)s);")
+        sqldata = {
+            'project_id': project_id,
+            'list_name': list_name
+        }
+        return action.DB.sql_action(query, sqldata)
+        # print(data)
+
+    @classmethod 
+    def show_project(self, telegram_id):
+        query = ("SELECT projects.project_name, projects.id "
+            "FROM users, users_projects, projects "
+            "WHERE users.id = users_projects.user_id "
+            "AND projects.id = users_projects.project_id "
+            "AND users.telegram_id = %(telegram_id)s;")
+        sqldata = {
+            'telegram_id': telegram_id
+        }
+        data = action.DB.sql_select(query, sqldata)
+        return data 
+
+    @classmethod 
+    def show_lists(self, project_id):
+        query = ("SELECT lists.list_name, lists.id "
+            "FROM lists "
+            "WHERE lists.project_id = %(project_id)s;")
+        sqldata = {
+            'project_id': project_id
+        }
+        data = action.DB.sql_select(query, sqldata)
+        return data 
+        
+
 
             
 
