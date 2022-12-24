@@ -27,7 +27,7 @@ class SQLCommand():
     def show_all_tasks(self, telegram_id):
         query = (" SELECT tasks.id AS task_id, tasks.task_name AS task_name, tasks.status AS statuse, "
                 " lists.id AS list_id, lists.list_name AS list_name, lists.project_id AS project_id, ui AS user_id "
-                " FROM tasks  JOIN lists ON  (lists.id = tasks.list_id)  JOIN (SELECT projects.id AS pid, users.id AS ui "
+                " FROM tasks  JOIN lists ON  (lists.id = tasks.list_id) JOIN (SELECT projects.id AS pid, users.id AS ui "
                 " FROM users, users_projects, projects"
                 " WHERE users.id = users_projects.user_id AND projects.id = users_projects.project_id AND users.telegram_id=%(telegram_id)s) AS t "
                 " ON (lists.project_id = t.pid);")
@@ -98,7 +98,7 @@ class SQLCommand():
         list_id = self.use_def_list(telegram_id)
         print(list_id)
         query = ("SELECT task_name, id "
-                " FROM tasks WHERE list_id = %(list_id)s;")
+                " FROM tasks WHERE list_id = %(list_id)s AND status = 0;")
         sqldata = {
             'list_id': list_id
         }

@@ -5,12 +5,21 @@ import db
 
 bot = telebot.TeleBot(setting.bot_token)
 
+common_command = ['✎', '🗑']
+
 # Генерация клавиатуры
 def change_keyboard_inline(answer = []):
     keyboard = types.InlineKeyboardMarkup()
     for i in answer:
         keyboard.add(types.InlineKeyboardButton(text=i[0], callback_data=i[1]))
     return keyboard
+
+def change_keyboard_inline_row(answer = []):
+    keyboards = []
+    keyboard = types.InlineKeyboardMarkup()
+    for i in answer:
+        keyboards.append(keyboard.add(types.InlineKeyboardButton(text=common_command[0], callback_data=i), types.InlineKeyboardButton(text=common_command[1], callback_data=i)))
+    return keyboards
 
 def change_keyboard_keys(command = []):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=3, one_time_keyboard=True)
@@ -50,11 +59,12 @@ def get_text_messages(message):
         if data is None:
             bot.send_message(message.from_user.id, 'Нет задач', reply_markup=default_keyboard)
         else:
-            btns = []
             for i in data:
-                btns.append([i[0], "in_project|" + str(i[1])])
-            keyboard = change_keyboard_inline(btns)
-            bot.send_message(message.from_user.id, 'Задачи', reply_markup=default_keyboard)
+                keyboard = types.InlineKeyboardMarkup()
+                keyboard.add(types.InlineKeyboardButton(text=common_command[0], callback_data='edit_task|' + str(i[1])), 
+                types.InlineKeyboardButton(text=common_command[1], callback_data='delete_task|' + str(i[1])))
+                bot.send_message(message.from_user.id, i[0], reply_markup=keyboard)
+                keyboard = ''
     elif message.text == 'Сегодня':
         bot.send_message(message.from_user.id, message.text, reply_markup=default_keyboard)
     elif message.text == 'Скоро':
