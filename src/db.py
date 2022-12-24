@@ -82,9 +82,26 @@ class SQLCommand():
         }
         data = action.DB.sql_select(query, sqldata)
         return data 
-        
 
+    @classmethod 
+    def use_def_list(self, telegram_id):
+        query = ("SELECT lists.id FROM projects, users, lists WHERE users.telegram_id = %(telegram_id)s AND users.id = projects.user_id AND lists.project_id = projects.id AND projects.project_name='Входящие';")
+        sqldata = {
+            'telegram_id': telegram_id
+        }
+        data = action.DB.sql_select(query, sqldata)
+        return data[0][0]
 
-            
+    @classmethod
+    def show_task_list(self, telegram_id):
 
+        list_id = self.use_def_list(telegram_id)
+        print(list_id)
+        query = ("SELECT task_name, id "
+                " FROM tasks WHERE list_id = %(list_id)s;")
+        sqldata = {
+            'list_id': list_id
+        }
+        data = action.DB.sql_select(query, sqldata)
+        return data 
 
